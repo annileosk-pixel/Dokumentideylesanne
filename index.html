@@ -242,6 +242,7 @@ const questions = [
 
 const PASS_THRESHOLD = 0.7; // 70%
 let current = 0;
+let bestPct = -1;
 let score = 0;
 let answered = new Array(questions.length).fill(false);
 
@@ -355,7 +356,11 @@ function showResult() {
   resultScore.textContent = pct + "%";
   resultDetail.textContent = `Õigeid vastuseid: ${score} / ${questions.length} (läbimiseks vajalik ${Math.round(PASS_THRESHOLD*100)}%)`;
 
-  scormSetScore(pct, 100, passed);
+  // Kordusel ei kirjuta paremat tulemust halvemaga üle
+  if (pct >= bestPct) {
+    bestPct = pct;
+    scormSetScore(pct, 100, passed);
+  }
 }
 
 retryBtn.addEventListener("click", () => {

@@ -3,14 +3,18 @@ var API = null;
 var findAPITries = 0;
 
 function findAPI(win) {
-  while ((win.API == null) && (win.parent != null) && (win.parent != win)) {
-    findAPITries++;
-    if (findAPITries > 500) {
-      return null;
+  try {
+    while ((win.API == null) && (win.parent != null) && (win.parent != win)) {
+      findAPITries++;
+      if (findAPITries > 10) {
+        return null;
+      }
+      win = win.parent;
     }
-    win = win.parent;
+    return win.API;
+  } catch (e) {
+    return null;
   }
-  return win.API;
 }
 
 function getAPI() {
@@ -55,6 +59,5 @@ function scormFinish() {
   api.LMSFinish("");
 }
 
-window.addEventListener("beforeunload", function () {
-  scormFinish();
-});
+window.addEventListener("beforeunload", scormFinish);
+window.addEventListener("unload", scormFinish);

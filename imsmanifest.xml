@@ -22,9 +22,9 @@
   </organizations>
 
   <resources>
-    <resource identifier="RESOURCE_1" type="webcontent" adlcp:scormtype="sco" href="scormcontent/index.html">
-      <file href="scormcontent/index.html" />
-      <file href="scormcontent/scormAPI.js" />
+    <resource identifier="RESOURCE_1" type="webcontent" adlcp:scormtype="sco" href="index.html">
+      <file href="index.html" />
+      <file href="scormAPI.js" />
     </resource>
   </resources>
 
