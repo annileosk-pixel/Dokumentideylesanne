@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ELEA Üldtingimused 2015 – Test</title>
+<script src="scormAPI.js"></script>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --card: #ffffff;
+    --ink: #1c2333;
+    --muted: #6b7280;
+    --accent: #1c4e80;
+    --accent-light: #eaf1fa;
+    --good: #1c7a44;
+    --good-bg: #e8f7ee;
+    --bad: #b3261e;
+    --bad-bg: #fbe9e8;
+    --border: #e2e5eb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 24px 16px 60px;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; }
+  header { margin-bottom: 20px; }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  .subtitle { color: var(--muted); font-size: 0.9rem; margin: 0; }
+  .progress-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 4px;
+    margin: 16px 0 24px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .q-index { font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; }
+  .q-prompt { font-size: 1.05rem; font-weight: 600; margin: 0 0 14px; line-height: 1.4; }
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .option:hover { background: var(--accent-light); }
+  .option input { margin-top: 3px; }
+  .option.correct { border-color: var(--good); background: var(--good-bg); }
+  .option.incorrect { border-color: var(--bad); background: var(--bad-bg); }
+  .option.disabled { pointer-events: none; }
+  .feedback {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    line-height: 1.4;
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct { background: var(--good-bg); color: var(--good); }
+  .feedback.incorrect { background: var(--bad-bg); color: var(--bad); }
+  .feedback b { display: block; margin-bottom: 4px; }
+  .feedback .expl { color: var(--ink); font-weight: 400; }
+  .nav-row { display: flex; justify-content: flex-end; margin-top: 4px; }
+  button {
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: var(--accent);
+    color: white;
+  }
+  button:disabled { background: #b7c3d1; cursor: not-allowed; }
+  button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .result-card { text-align: center; padding: 32px 20px; }
+  .result-score { font-size: 2.4rem; font-weight: 700; margin: 8px 0; }
+  .result-status { font-size: 1.1rem; font-weight: 600; margin-bottom: 6px; }
+  .status-passed { color: var(--good); }
+  .status-failed { color: var(--bad); }
+  .result-detail { color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; }
+  .hidden { display: none !important; }
+  .hint-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 0.85rem;
+    padding: 0;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+  .hint-box {
+    font-size: 0.85rem;
+    color: var(--muted);
+    background: var(--accent-light);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .hint-box.show { display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ELEA Üldtingimused 2015 – Test</h1>
+    <p class="subtitle">Kontrolli oma teadmisi Eesti Logistika ja Ekspedeerimise Assotsiatsiooni üldtingimuste kohta</p>
+  </header>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div id="quizArea"></div>
+
+  <div class="card result-card hidden" id="resultCard">
+    <div class="result-status" id="resultStatus"></div>
+    <div class="result-score" id="resultScore"></div>
+    <div class="result-detail" id="resultDetail"></div>
+    <button class="secondary" id="retryBtn">Proovi uuesti</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {
+    id: "q1",
+    prompt: "Millisel aastal jõustusid praegu kehtivad ELEA üldtingimused (NSAB 2015 kooskõlas)?",
+    options: [
+      { id: "a", text: "2011" },
+      { id: "b", text: "2015" },
+      { id: "c", text: "2017" },
+      { id: "d", text: "2000" }
+    ],
+    correct: "c",
+    hint: "Vaata teksti algusest kokkuleppe jõustumise kuupäeva.",
+    explanation: "Kuigi tingimusi nimetatakse „ELEA ÜT 2015“, leppisid ELEA ja Eesti Kaubandus-Tööstuskoda 2016. aasta 2. mail kokku muuta üldtingimused tervikuna NSAB 2015-ga kooskõlla, kuid muudatused jõustusid alles 2017. aasta 1. jaanuaril."
+  },
+  {
+    id: "q2",
+    prompt: "Milline on peamine erinevus ekspedeerija vastutuses, kui ta tegutseb VEDAJANA võrreldes VAHENDAJANA?",
+    options: [
+      { id: "a", text: "Vedajana ei vastuta ta üldse kauba eest" },
+      { id: "b", text: "Vahendajana vastutab ta ainult oma töötajate, mitte alltöövõtjate eest" },
+      { id: "c", text: "Vahenduse korral vastutus on alati suurem" },
+      { id: "d", text: "Vahet ei ole, vastutus on identne" }
+    ],
+    correct: "b",
+    hint: "Vaata §3 punkti C.",
+    explanation: "§3 punkt C sätestab, et vahendajana tegutsedes ei vastuta ekspedeerija teiste lepingu täitmisele kaasatud isikute eest, vaid ainult oma töötajate eest — see on kitsam vastutus kui vedajana tegutsedes."
+  },
+  {
+    id: "q3",
+    prompt: "Kui suur on ekspedeerija vastutuse piirmäär kauba kaotsimineku või kahjustumise korral vedajana tegutsedes?",
+    options: [
+      { id: "a", text: "8,33 SDR brutokilogrammi kohta" },
+      { id: "b", text: "50 000 SDR saadetise kohta" },
+      { id: "c", text: "100 000 SDR saadetise kohta" },
+      { id: "d", text: "Piirmäära ei ole" }
+    ],
+    correct: "a",
+    hint: "Vaata §21 punkti A.",
+    explanation: "§21 punkt A sätestab, et ekspedeerija vastutus kauba kaotsimineku, vähenemise või kahjustumise korral piirdub 8,33 SDR-iga kaotsiläinud, vähenenud või kahjustunud kauba iga brutokilogrammi kohta."
+  },
+  {
+    id: "q4",
+    prompt: "Mitme päeva jooksul tuleb teavitada varjatud (mitte kohe nähtavatest) kauba kahjustustest pärast kauba vastuvõtmist?",
+    options: [
+      { id: "a", text: "Kohe vastuvõtmisel" },
+      { id: "b", text: "7 päeva jooksul" },
+      { id: "c", text: "14 päeva jooksul" },
+      { id: "d", text: "30 päeva jooksul" }
+    ],
+    correct: "b",
+    hint: "Vaata §27 teist lõiku.",
+    explanation: "§27 sätestab, et kauba vastuvõtmisel mittetuvastatud kahjustustest või vähenemisest tuleb teavitada hiljemalt 7 päeva jooksul pärast kauba vastuvõtmist. Nähtavatest kahjustustest tuleb aga teatada kohe."
+  },
+  {
+    id: "q5",
+    prompt: "Mitme päeva möödudes loetakse rahvusvahelisel maanteeveol kaup kaotsiläinuks, kui kokkulepitud veotähtaega on ületatud?",
+    options: [
+      { id: "a", text: "30 päeva pärast kokkulepitud veotähtaega" },
+      { id: "b", text: "60 päeva pärast kokkulepitud veotähtaega" },
+      { id: "c", text: "14 päeva pärast kokkulepitud veotähtaega" },
+      { id: "d", text: "90 päeva pärast kokkulepitud veotähtaega" }
+    ],
+    correct: "a",
+    hint: "Vaata §20 esimest punkti.",
+    explanation: "§20 sätestab, et rahvusvaheliste maanteevedude puhul on tellijal õigus nõuda hüvitist kauba kaotsimineku eest, kui kaupa ei ole üle antud 30 päeva jooksul pärast kokkulepitud veotähtaja saabumist (või 60 päeva, kui tähtaega ei ole kokku lepitud)."
+  },
+  {
+    id: "q6",
+    prompt: "Millise ajaperioodi jooksul aegub nõudeõigus ekspedeerija vastu, kui hagi ei ole esitatud?",
+    options: [
+      { id: "a", text: "6 kuu jooksul" },
+      { id: "b", text: "1 aasta jooksul" },
+      { id: "c", text: "2 aasta jooksul" },
+      { id: "d", text: "3 aasta jooksul" }
+    ],
+    correct: "b",
+    hint: "Vaata §28 esimest lõiku.",
+    explanation: "§28 sätestab, et ekspedeerija vastu tuleb hagi esitada nõudeõiguse tekkimisest alates ühe aasta jooksul, vastasel korral nõudeõigus aegub."
+  },
+  {
+    id: "q7",
+    prompt: "Kus lahendatakse erimeelsused, kui pooltevahelised läbirääkimised ebaõnnestuvad ja arbitraažiklauslit ei ole kokku lepitud?",
+    options: [
+      { id: "a", text: "Alati Eesti Kaubandus-Tööstuskoja Arbitraažikohtus" },
+      { id: "b", text: "Tellija asukohariigi kohtus" },
+      { id: "c", text: "Ekspedeerija peamise tegevuskohariigi üldkohtus" },
+      { id: "d", text: "Euroopa Liidu Kohtus" }
+    ],
+    correct: "c",
+    hint: "Vaata §29.",
+    explanation: "§29 sätestab, et kui läbirääkimiste teel erimeelsusi lahendada ei õnnestu, lahendatakse need ekspedeerija peamise tegevuskohariigi üldkohtus, järgides sama riigi seadusandlust. Arbitraaž on võimalik ainult eraldi kokkuleppe alusel."
+  }
+];
+
+const PASS_THRESHOLD = 0.7; // 70%
+let current = 0;
+let score = 0;
+let answered = new Array(questions.length).fill(false);
+
+const quizArea = document.getElementById("quizArea");
+const progressFill = document.getElementById("progressFill");
+const resultCard = document.getElementById("resultCard");
+const resultStatus = document.getElementById("resultStatus");
+const resultScore = document.getElementById("resultScore");
+const resultDetail = document.getElementById("resultDetail");
+const retryBtn = document.getElementById("retryBtn");
+
+function renderQuestion(idx) {
+  const q = questions[idx];
+  progressFill.style.width = (idx / questions.length * 100) + "%";
+
+  let html = `
+    <div class="card">
+      <div class="q-index">Küsimus ${idx + 1} / ${questions.length}</div>
+      <p class="q-prompt">${q.prompt}</p>
+      <button class="hint-btn" id="hintBtn">Näita vihjet</button>
+      <div class="hint-box" id="hintBox">${q.hint}</div>
+      <div id="optionsList">
+  `;
+  q.options.forEach(opt => {
+    html += `
+      <label class="option" data-id="${opt.id}">
+        <input type="radio" name="answer" value="${opt.id}" />
+        <span>${opt.text}</span>
+      </label>
+    `;
+  });
+  html += `
+      </div>
+      <div class="feedback" id="feedbackBox">
+        <b id="feedbackTitle"></b>
+        <span class="expl" id="feedbackExpl"></span>
+      </div>
+      <div class="nav-row">
+        <button id="nextBtn" disabled>Kontrolli vastust</button>
+      </div>
+    </div>
+  `;
+  quizArea.innerHTML = html;
+
+  const hintBtn = document.getElementById("hintBtn");
+  const hintBox = document.getElementById("hintBox");
+  hintBtn.addEventListener("click", () => {
+    hintBox.classList.toggle("show");
+  });
+
+  const optionEls = document.querySelectorAll(".option");
+  const nextBtn = document.getElementById("nextBtn");
+  let selected = null;
+  let checked = false;
+
+  optionEls.forEach(el => {
+    el.addEventListener("click", () => {
+      if (checked) return;
+      selected = el.getAttribute("data-id");
+      optionEls.forEach(o => o.querySelector("input").checked = false);
+      el.querySelector("input").checked = true;
+      nextBtn.disabled = false;
+    });
+  });
+
+  nextBtn.addEventListener("click", () => {
+    if (!checked) {
+      // Kontrolli vastust
+      checked = true;
+      const isCorrect = selected === q.correct;
+      if (isCorrect) score++;
+      answered[idx] = true;
+
+      optionEls.forEach(el => {
+        const id = el.getAttribute("data-id");
+        el.classList.add("disabled");
+        if (id === q.correct) el.classList.add("correct");
+        else if (id === selected) el.classList.add("incorrect");
+      });
+
+      const fb = document.getElementById("feedbackBox");
+      const fbTitle = document.getElementById("feedbackTitle");
+      const fbExpl = document.getElementById("feedbackExpl");
+      fb.classList.add("show", isCorrect ? "correct" : "incorrect");
+      fbTitle.textContent = isCorrect ? "Õige!" : "Mitte päris.";
+      fbExpl.textContent = q.explanation;
+
+      nextBtn.textContent = (idx === questions.length - 1) ? "Vaata tulemust" : "Järgmine küsimus";
+      nextBtn.disabled = false;
+    } else {
+      current++;
+      if (current < questions.length) {
+        renderQuestion(current);
+      } else {
+        showResult();
+      }
+    }
+  });
+}
+
+function showResult() {
+  progressFill.style.width = "100%";
+  quizArea.innerHTML = "";
+  resultCard.classList.remove("hidden");
+
+  const pct = Math.round((score / questions.length) * 100);
+  const passed = (score / questions.length) >= PASS_THRESHOLD;
+
+  resultStatus.textContent = passed ? "Test läbitud" : "Test ebaõnnestus";
+  resultStatus.className = "result-status " + (passed ? "status-passed" : "status-failed");
+  resultScore.textContent = pct + "%";
+  resultDetail.textContent = `Õigeid vastuseid: ${score} / ${questions.length} (läbimiseks vajalik ${Math.round(PASS_THRESHOLD*100)}%)`;
+
+  scormSetScore(pct, 100, passed);
+}
+
+retryBtn.addEventListener("click", () => {
+  current = 0;
+  score = 0;
+  answered = new Array(questions.length).fill(false);
+  resultCard.classList.add("hidden");
+  progressFill.style.width = "0%";
+  renderQuestion(0);
+});
+
+// Käivita
+scormInit();
+renderQuestion(0);
+</script>
+</body>
+</html>
